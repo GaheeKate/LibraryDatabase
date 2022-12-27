@@ -2,6 +2,10 @@
 
 @{
     ViewBag.Title = "Index";
+    int pageNum = ViewBag.Page ?? 1; //if null put 1
+    int totalCount = ViewBag.TotalCount ?? 0;
+    int MaxListCount = ViewBag.MaxListCount ?? 1;
+    int TotalPageCount =Convert.ToInt32(Math.Ceiling((double)totalCount / MaxListCount));
 }
 
 <h2>Index</h2>
@@ -12,7 +16,7 @@
 <table class="table">
     <tr>
         <th>
-            @Html.DisplayNameFor(model => model.Title)
+            @Html.DisplayNameFor(model => model.Title) 
         </th>
         <th>
             @Html.DisplayNameFor(model => model.Writer)
@@ -55,3 +59,26 @@
 }
 
 </table>
+
+<form style="width:400px;float:left;">
+    <div class="input-group">
+        <span class="input-group-addon">
+            <select name="SearchList">
+                <option value="Title" @(ViewBag.SearchList == "Title" ? "selected" : ""))>Title</option>
+                <option value="Writer" @(ViewBag.SearchList == "Writer" ? "selected" : "")>Writer</option>
+                <option value="Publisher" @(ViewBag.SearchList == "Publisher" ? "selected" : "")>Publisher</option>
+
+            </select>
+        </span>
+        <input class="form-control" type="text" name="keyword" value="@ViewBag.Keyword" />
+        <span class="input-group-btn">
+            <button class="btn btn-info" type="submit">Search</button>
+        </span>
+    </div>
+</form>
+<div class="text-center">
+    <div class="btn-group">
+        @for (int i = 1; i <= TotalPageCount; i++) { 
+        <a class="btn btn-@(pageNum == i ? "primary" : "default")" href="?page=@i">@i</a>
+        }</div>
+</div>

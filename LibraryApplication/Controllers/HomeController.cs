@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.Entity;
 using System.Linq;
 using System.Net;
-using System.Web;
 using System.Web.Mvc;
 using LibraryApplication.Context;
 using LibraryApplication.Models;
@@ -18,7 +16,63 @@ namespace LibraryApplication.Controllers
         // GET: Home
         public ActionResult Index()
         {
-            return View(db.Books.ToList());
+            int maxListCount = 3;
+            int pageNum = 1;
+            string keyword = Request.QueryString["keyword"] ?? string.Empty;
+            string SearchList = Request.QueryString["SearchList"] ?? string.Empty;
+            int totalCount = 0;
+
+            if (Request.QueryString["page"] != null)
+                pageNum = Convert.ToInt32(Request.QueryString["page"]);
+
+
+            //LINQ Order by before using skip "Select * from Books order by Book_U desc"
+            var books = new List<Book>();
+
+            if (string.IsNullOrWhiteSpace(keyword))
+            {
+                books= db.Books.OrderBy(x => x.Book_U)
+                    .Skip((pageNum - 1) * maxListCount)
+                    .Take(maxListCount).ToList();
+                totalCount = db.Books.Count();
+            }
+            else {
+
+
+                switch (SearchList)
+                {
+                    case "Title":
+                        books = db.Books.Where(x => x.Title.Contains(keyword)).ToList();
+                        totalCount= db.Books.Where(x => x.Title.Contains(keyword)).Count();
+                        break;
+                    case "Writer":
+                        books = db.Books.Where(x => x.Writer.Contains(keyword)).ToList();
+                        totalCount = db.Books.Where(x => x.Writer.Contains(keyword)).Count();
+
+                        break;
+                    case "Publisher":
+                        books = db.Books.Where(x => x.Publisher.Contains(keyword)).ToList();
+                        totalCount = db.Books.Where(x => x.Publisher.Contains(keyword)).Count();
+
+                        break;
+                }
+
+
+                books = books.OrderBy(x => x.Book_U)
+                        .Skip((pageNum - 1) * maxListCount)
+                        .Take(maxListCount).ToList();
+         
+
+            }
+            ViewBag.Page = pageNum;
+            ViewBag.TotalCount = totalCount;
+            ViewBag.MaxListCount = maxListCount;
+            ViewBag.SearchList = SearchList;
+            ViewBag.Keyword = keyword;
+
+
+            // string query = "SELECT * FROM Books";
+            return View(books);
         }
 
         // GET: Home/Details/5
@@ -43,8 +97,7 @@ namespace LibraryApplication.Controllers
         }
 
         // POST: Home/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
-        // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
+ 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Create([Bind(Include = "Book_U,Title,Writer,Summary,Publisher,Published_date")] Book book)
@@ -75,8 +128,7 @@ namespace LibraryApplication.Controllers
         }
 
         // POST: Home/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
-        // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
+      
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Edit([Bind(Include = "Book_U,Title,Writer,Summary,Publisher,Published_date")] Book book)
